@@ -33,13 +33,13 @@ if ($connection) {
             u.username AS username
         FROM post p
         INNER JOIN usuario u ON p.id_usuario = u.iduser
-        WHERE p.id_usuario = ?";
+        /*WHERE p.id_usuario = ?*/";
 
         
         // Preparar la consulta,
         $stmt = $connection->prepare($sql);
         if ($stmt) {
-            $stmt->bind_param("i", $iduser); // Vincular el parámetro
+            //$stmt->bind_param("i", $iduser); // Vincular el parámetro
             $stmt->execute(); // Ejecutar la consulta
             $result = $stmt->get_result(); // Obtener los resultados
 

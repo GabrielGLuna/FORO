@@ -1,8 +1,16 @@
-window.onload = function() {
-    document.cookie = "idUser=4;path=/";
-
-    console.log("Modal mostrado al cargar la página");
-    // Función para cargar los posts
+var iduser="iduser=";
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        let cookie = cookies[i].trim(); 
+        if (cookie.startsWith(iduser)) {
+            var cokie = cookie.substring(iduser.length);
+            iduser = cokie;
+        }
+    }
+    console.log("iduser:", iduser);
+        
+window.onload = function() {    
+    loadChanels(); 
     loadPosts();
 };
 
@@ -39,6 +47,37 @@ modal.addEventListener('click', (event)=>{
     }
 });
 
+function loadChanels(){
+    console.log("entro en load js", iduser);
+    $.ajax({
+        url: '../../dist/php/post.php',
+                type: 'POST',
+                data: { action: 'loadChanels', idUser:iduser},
+                dataType: 'json',
+                success: function(response){
+                    console.log("canales: ", response.list);
+                    if (response.success) {      
+                        response.list.forEach(canal => {
+                            
+                            console.log("canales: ", canal.canalname);
+                                // Crear el formato HTML para cada post
+                                var postHTML = `
+                                    <button class="button-chanel">
+                                        <img src="../../dist/php/${canal.image}" class="mini-image">
+                                        <p> ${canal.canalname}</p>
+                                    </button>
+                                `;
+                                // Agregar el nuevo post al contenedor
+                                document.getElementById('canales-group').innerHTML += postHTML;
+                            });                        
+                    }
+                },
+                error: function nojalo(error) {
+                    console.error("no jalo", error);
+                }
+    });
+    
+}
 function sendComment(postId, idUser) {
     var comment = document.getElementById("comment-input").value;
             console.log("esto es el coment", comment);
@@ -61,11 +100,6 @@ function sendComment(postId, idUser) {
             });
 }
 
-function loadListenersBoxComment(postId, idUser) {  
-
-    
-    
-}
 
 // Función para manejar el like
 function likePost(postId, button) {
@@ -165,15 +199,13 @@ window.addEventListener('click', (event) => {
 
 function loadPosts() {
     // Crear una solicitud AJAX
-    var userId = 4;
+    console.log("id:", iduser);    
     var xhr = new XMLHttpRequest();
-    var iduser = userId;
     xhr.open("GET", `http://localhost/FORO/dist/php/get_posts.php?iduser=${iduser}`, true);
     
     // Cuando la solicitud se haya completado con éxito
     xhr.onload = function() {
         if (xhr.status === 200) {
-            console.log(xhr.responseText);  // Imprime la respuesta del servidor
             try {
                 var response = JSON.parse(xhr.responseText); // Parsear el JSON devuelto
                 var posts = response.data; // Parsear el JSON devuelto
@@ -243,7 +275,7 @@ function sendMessage() {
     formData.append("contenido_image", "");  // Imagen vacía (puedes cambiarlo si envías imágenes)
     formData.append("likes", "");  // Likes vacíos (puedes poner un valor si quieres)
     formData.append("numero_com", "");  // Número de comentarios vacíos (puedes poner un valor si quieres)
-    formData.append("id_usuario", 4);  // ID de usuario fijo
+    formData.append("id_usuario", iduser);  // ID de usuario fijo
     formData.append("id_canal", 1);  // ID de canal fijo
 
     // Usar AJAX para enviar los datos al servidor

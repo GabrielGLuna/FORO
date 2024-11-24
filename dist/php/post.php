@@ -8,8 +8,9 @@ if (isset($_POST['message'])) {
     $contenido_image = isset($_POST['contenido_image']) ? $_POST['contenido_image'] : NULL;  // Imagen, por ahora vacía
     $likes = isset($_POST['likes']) ? $_POST['likes'] : NULL;  // Likes, por ahora vacíos
     $numero_com = isset($_POST['numero_com']) ? $_POST['numero_com'] : NULL;  // Número de comentarios, por ahora vacío
-    $id_usuario = 4;  // ID del usuario fijo
+    $id_usuario = trim($_POST['id_usuario']);  // ID del usuario fijo
     $id_canal = 1;  // ID del canal fijo
+
 
     // Verificar que el mensaje no esté vacío
     if (!empty($message)) {
@@ -66,6 +67,7 @@ if ($action === 'like') {
     }
 } elseif ($action === 'comment') {
     if (!empty($id_post)) {
+        
         // Realizar un SELECT para obtener los comentarios asociados al post
         $sql = "SELECT c.id_comentario, c.contenido, c.id_usuario, u.username, c.id_post
                 FROM comentario c
@@ -82,7 +84,6 @@ if ($action === 'like') {
             while ($row = $result->fetch_assoc()) {
                 $comments[] = $row; // Agregar cada fila al array de comentarios
             }
-
             echo json_encode(['success' => true, 'comments' => $comments]);
         } else {
             http_response_code(500);
@@ -92,10 +93,8 @@ if ($action === 'like') {
         $stmt->close();
     } else {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'ID del post no válido']);
     }
 } elseif ($action === 'sendComment') {
-    echo("si llego");
     if (!empty($id_post) && !empty($idUser)) {
         $sql = "INSERT INTO comentario( contenido, id_usuario , id_post)
                 VALUES('$comment','$idUser','$id_post')";
@@ -103,7 +102,35 @@ if ($action === 'like') {
                 $stmt->execute();
 
     }
+} elseif ($action === 'loadChanels') {
+    if (!empty($idUser)) {
+        $sql1 = "SELECT canales FROM usuario WHERE iduser = ?";
+        $stmt1 = $connection->prepare($sql1);
+        $stmt1->bind_param("i", $idUser);       
+        if ($stmt1->execute()) {
+            $result1 = $stmt1->get_result();
+            if ($result1->num_rows > 0) {
+                $row = $result1->fetch_assoc();
+                $canales = rtrim($row['canales'], ',');
+                if (!empty($canales)) {
+                    $sql2 = "SELECT * FROM canales WHERE id_canal IN ($canales)";
+                    $stmt2 = $connection->prepare($sql2);
+                    if ($stmt2->execute()) {
+                        $result2 = $stmt2->get_result();
+                        $lista_canales = [];
+                        while ($canal = $result2->fetch_assoc()) {
+                            $lista_canales[] = $canal;
+                        }
+                        echo json_encode(["success" => true, "list" => $lista_canales]);
+                    }
+                    $stmt2->close();
+                }
+            }
+        }
+        $stmt1->close();
+    }
 }
+
 
 $connection->close();  // Cerrar la conexión a la base de datos
 ?>
