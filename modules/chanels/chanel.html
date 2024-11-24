@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="../../dist/css/style.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>    
     <nav>
         <ul>
             <div class="left-group">
-                <li><img src="../../dist/img/logo.webp" alt="logos"></li>
+                <li><img src="../../dist/img/logo.png" alt="logos"></li>
                 <li class="btns-content">
                     <button>Para ti</button>
                     <button>Siguiendo</button>
@@ -134,37 +135,34 @@ Revisa el HTML para asegurarte de que no hay espacios no deseados. Además, pued
                         <p>Comunidades populares</p>
                     </div>
                     <div class="popular-channel-btn">
-                        <img src="../../dist/img/chanelIMG.webp">
+                        <img src="../../dist/php/uploads/673f955f5426e_logo.png">
                         <button>
                             <p>Este es un canal popular</p>                        
                         </button>
                     </div>
                     <div class="view-more">Ver más</div>
                 </div>
-            </div>
+            </div>            
     </div>
     <div class="message-container">
-        <input type="text" placeholder="Escribe una idea..." class="message-input" id="button-post">
+        <input type="text" placeholder="Escribe una idea..." class="message-input" id="post-input">
         <button class="send-button" onclick="sendMessage()">Enviar</button>
     </div>
     <div id="response"></div>    
     <!-- Contenedor de la ventana emergente -->
-    <div id="comment-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2>Comentarios</h2>
-            <div class="comments-section">
-                <div class="existing-comments">
-                    <!-- Aquí se mostrarán comentarios existentes -->
-                    <p>No hay comentarios aún. ¡Sé el primero en comentar!</p>
-                </div>
-                <div class="add-comment">
-                    <textarea placeholder="Escribe tu comentario aquí..." id="comment-input"></textarea>
-                    <button id="submit-comment">Enviar</button>
-                </div>
+    <!-- Botón comentar -->
+<button class="comment-button" data-id="1">Comentar</button>
+
+<!-- Modal -->
+<div id="comment-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Comentarios</h2>
+            <div class="comments-section" id="comments-part">            
             </div>
-        </div>
     </div>
+</div>
+
     <button onclick="document.getElementById('comment-modal').style.display = 'block'">Mostrar Modal</button>
 
     <script src="../../dist/js/post.js"></script>

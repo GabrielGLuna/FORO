@@ -1,61 +1,174 @@
 window.onload = function() {
-    modal.style.display = "block"; // Este debería mostrar el modal al cargar
+    document.cookie = "idUser=4;path=/";
+
     console.log("Modal mostrado al cargar la página");
     // Función para cargar los posts
     loadPosts();
 };
 
 // Obtener elementos de la ventana emergente
+const postsContainer = document.getElementById("posts-container");
 const modal = document.getElementById("comment-modal");
 const closeBtn = document.querySelector(".close-btn");
-const submitComment = document.getElementById("submit-comment");
 const existingComments = document.querySelector(".existing-comments");
 const commentInput = document.getElementById("comment-input");
 
-// Seleccionar el contenedor de posts
-const postsContainer = document.getElementById('posts-container');
-
-// Delegar eventos al contenedor
+// Delegar eventos al contenedor para manejar botones
 postsContainer.addEventListener('click', (event) => {
-    if (event.target.closest('.comment-button')) {
+    if (event.target.closest('.like-button')) {
+        console.log("diste like");
+        const postId = event.target.closest('.like-button').getAttribute('data-id');
+        likePost(postId, event.target.closest('.like-button'));
+    } else if (event.target.closest('.comment-button')) {
+        const postId = event.target.closest('.comment-button').getAttribute('data-id');
+        commentPost(postId, event.target.closest('.comment-button'))
         modal.style.display = "block";
-        console.log("hiciste click");
+        console.log("hiciste clic en comentar");
     }
 });
+modal.addEventListener('click', (event)=>{
+    if(event.target.closest('#submit-comment')){  
+        console.log("presionaste comentar");
+        var data = event.target.closest('#submit-comment').getAttribute('data-id');
+        var dataId = data.split(',');
+        var idUser = dataId[0];
+        var postId = dataId[1];
+        console.log("post", postId);
+        console.log("user", idUser);
+        sendComment(postId,idUser);            
+    }
+});
+
+function sendComment(postId, idUser) {
+    var comment = document.getElementById("comment-input").value;
+            console.log("esto es el coment", comment);
+            document.getElementById("comment-input").value="";            
+            $.ajax({
+                url: '../../dist/php/post.php',
+                type: 'POST',
+                data: { action: 'sendComment', id_post: postId, idUser: idUser, comment:comment },
+                dataType: 'json',
+                success: function(response){
+                    if (response.success) {
+                        console.log("si jalo w");
+                        document.getElementById("comment-input").value = "";
+                        comment = document.getElementById("comment-input").value;
+                    }
+                },
+                error: function nojalo() {
+                    console.log("no jalo w");   
+                }
+            });
+}
+
+function loadListenersBoxComment(postId, idUser) {  
+
+    
+    
+}
+
+// Función para manejar el like
+function likePost(postId, button) {
+    
+    $.ajax({
+        url: '../../dist/php/post.php',
+        type: 'POST',
+        data: { action: 'like', id_post: postId },
+        dataType: 'json',
+        success: function (response) {
+            if (response.success) {
+                console.log('Like añadido correctamente');
+                const newLikes = response.new_likes || 1;
+                button.querySelector('i').className = 'bx bx-like';
+                button.querySelector('span').textContent = ` Like (${newLikes})`;
+
+            } else {
+                console.error('Error al añadir el like:', response.error);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Error en la soli citud AJAX:', error);
+        }
+    });
+}
+
+
+function commentPost(postId, button) {
+    var idUser="idUser=";
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        let cookie = cookies[i].trim(); 
+        if (cookie.startsWith(idUser)) {
+            var cokie = cookie.substring(idUser.length);
+            idUser = cokie;
+        }
+    }
+    var postHTML = `<div id="comment-group">
+                    <div id="existing-comments" >
+                        <!-- Aquí se mostrarán comentarios existentes -->
+                        <p>No hay comentarios aún. ¡Sé el primero en comentar!</p>
+                    </div>
+                    <div class="add-comment">
+                    <textarea placeholder="Escribe tu comentario aquí..." id="comment-input"></textarea>
+                    <button id="submit-comment" data-id="${idUser},${postId}">comentar</button>                                        
+                    </div>
+                    </div>
+                    `;
+                    // Agregar el nuevo post al contenedor
+                    document.getElementById('comments-part').innerHTML += postHTML;
+                    console.log(modal.style.display);
+                    $.ajax({
+                        url: '../../dist/php/post.php',
+                        type: 'POST',
+                        data: { action: 'comment', id_post: postId },
+                        dataType: 'json',
+                        success: function (response) {
+                            if (response.success) {
+                                var commentsContainer = document.getElementById('existing-comments');
+                                commentsContainer.innerHTML = ''; // Limpiar el contenido
+                console.log("respuesta:", response.comments);
+                
+                // Recorrer y mostrar cada comentario
+                response.comments.forEach(comments => {
+                    commentsContainer.innerHTML += `
+                    <div class="comment">
+                    <p><strong>Usuario ${comments.username}:</strong> ${comments.contenido}</p>
+                    </div>
+                    `;
+                });
+            } else {
+                console.error('Error al obtener comentarios:', response.error);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Error en la solicitud en esta parte:', error);
+        }
+    });    
+}
+
 
 // Cerrar la ventana al hacer clic en la 'X'
 closeBtn.addEventListener('click', () => {
     modal.style.display = "none";
+    var group = document.getElementById('comment-group');
+    group.remove();
 });
 
 // Cerrar la ventana al hacer clic fuera del contenido
 window.addEventListener('click', (event) => {
     if (event.target === modal) {
         modal.style.display = "none";
+        var group = document.getElementById('comment-group');
+        group.remove();
     }
 });
-
-// Agregar un nuevo comentario
-submitComment.addEventListener('click', () => {
-    const newComment = commentInput.value.trim();
-
-    if (newComment) {
-        const commentElement = document.createElement("p");
-        commentElement.textContent = newComment;
-        existingComments.appendChild(commentElement);
-
-        // Limpiar el campo de texto
-        commentInput.value = "";
-    } else {
-        alert("Por favor, escribe un comentario antes de enviar.");
-    }
-});
-
 
 function loadPosts() {
     // Crear una solicitud AJAX
+    var userId = 4;
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://localhost/FORO/dist/php/get_posts.php", true);
+    var iduser = userId;
+    xhr.open("GET", `http://localhost/FORO/dist/php/get_posts.php?iduser=${iduser}`, true);
     
     // Cuando la solicitud se haya completado con éxito
     xhr.onload = function() {
@@ -71,9 +184,9 @@ function loadPosts() {
                         var postHTML = `
                             <div class="post">
                                 <div class="head-post">
-                                    <img src="../../dist/img/image.png" alt="User Photo">
+                                    <img src="../../dist/php/${post.image}" alt="User Photo">
                                     <div class="info">
-                                        <span class="name">Krlos</span>
+                                        <span class="name">${post.username}</span>
                                         <span class="time">${post.fecha}</span>
                                     </div>                   
                                 </div>
@@ -81,10 +194,10 @@ function loadPosts() {
                                     ${post.contenido_texto}
                                 </div>
                                 <div class="interaction-post">
-                                    <button>
+                                    <button class="like-button" data-id="${post.id_post}">
                                         <i class='bx bx-like'></i>Like
                                     </button>
-                                    <button class='comment-button'>
+                                    <button class="comment-button" data-id="${post.id_post}">
                                         <i class='bx bx-comment-detail'></i>Comentar
                                     </button>
                                     <button>
@@ -114,7 +227,7 @@ function loadPosts() {
 
 function sendMessage() {
     // Obtener el mensaje del input
-    var message = document.getElementById("button-post").value;
+    var message = document.getElementById("post-input").value;
     console.log("mensaje a enviar", message);
 
     // Verificar que el mensaje no esté vacío
@@ -142,7 +255,7 @@ function sendMessage() {
             console.log("mensaje enviado correctamente");
             document.getElementById("response").innerHTML = xhr.responseText;
             // Limpiar el campo de texto
-            document.getElementById("button-post").value = "";
+            document.getElementById("post-input").value = "";
         } else {
             alert("Hubo un error al enviar el mensaje.");
         }
@@ -150,3 +263,50 @@ function sendMessage() {
     xhr.send(formData); // Enviar los datos al servidor
 }
 
+
+
+
+
+
+//styles
+// Selección de elementos
+const themeToggleButtons = document.querySelectorAll('.toggle-theme');
+const body = document.body;
+
+// Cargar el tema desde localStorage o usar el tema por defecto
+const currentTheme = localStorage.getItem('theme') || 'light';
+setTheme(currentTheme);
+
+// Función para alternar el tema
+function setTheme(theme) {
+    if (theme === 'dark') {
+        body.classList.add('dark');
+        updateIcons('dark');
+    } else {
+        body.classList.remove('dark');
+        updateIcons('light');
+    }
+    localStorage.setItem('theme', theme);
+}
+
+// Función para actualizar íconos de los botones de tema
+function updateIcons(theme) {
+    themeToggleButtons.forEach(button => {
+        const icon = button.querySelector('i');
+        if (theme === 'dark') {
+            icon.classList.remove('bx-sun');
+            icon.classList.add('bx-moon');
+        } else {
+            icon.classList.remove('bx-moon');
+            icon.classList.add('bx-sun');
+        }
+    });
+}
+
+// Añadir eventos a los botones
+themeToggleButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const newTheme = body.classList.contains('dark') ? 'light' : 'dark';
+        setTheme(newTheme);
+    });
+});
