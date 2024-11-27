@@ -62,10 +62,11 @@ function loadChanels(){
                             console.log("canales: ", canal.canalname);
                                 // Crear el formato HTML para cada post
                                 var postHTML = `
-                                    <button class="button-chanel">
-                                        <img src="../../dist/php/${canal.image}" class="mini-image">
-                                        <p> ${canal.canalname}</p>
-                                    </button>
+                        <button class="button-chanel" data-id="${channel.id_canal}">
+                            <img src="dist/php/${channel.image}" class="mini-image" alt="${channel.canalname}">
+                            <p>${channel.canalname}</p>
+                        </button>
+                    
                                 `;
                                 // Agregar el nuevo post al contenedor
                                 document.getElementById('canales-group').innerHTML += postHTML;
