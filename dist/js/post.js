@@ -7,7 +7,6 @@ var iduser="iduser=";
             iduser = cokie;
         }
     }
-    console.log("iduser:", iduser);
         
 window.onload = function() {    
     loadChanels(); 
